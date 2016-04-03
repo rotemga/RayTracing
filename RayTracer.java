@@ -97,8 +97,7 @@ public class RayTracer {
 				if (code.equals("cam"))
 				{
                     // Add code here to parse camera parameters
-					//double[] tmp = {1,2,3};
-					//vector t = new vector(tmp);
+
 					String[] newArray = Arrays.copyOfRange(params, 0, 3);
 					vector position = new vector(newArray);
 					newArray = Arrays.copyOfRange(params, 3, 6);
