@@ -20,6 +20,7 @@ public class RayTracer {
 
 	public int imageWidth;
 	public int imageHeight;
+	public scene thisScene;
 
 	/**
 	 * Runs the ray tracer. Takes scene file, output image file and image size as input.
