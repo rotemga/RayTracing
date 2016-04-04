@@ -20,7 +20,7 @@ public class RayTracer {
 
 	public int imageWidth;
 	public int imageHeight;
-	public scene thisScene;
+	public Scene thisScene;
 
 	/**
 	 * Runs the ray tracer. Takes scene file, output image file and image size as input.
@@ -77,13 +77,13 @@ public class RayTracer {
 		int lineNum = 0;
 		System.out.println("Started parsing scene file " + sceneFileName);
 		String[] newArray;
-		camera cam = new camera();
-		settings set = new settings();
-		List <material> mtl = new ArrayList<material>();
-		List <sphere> sph = new ArrayList<sphere>();
-		List <plane> pln = new ArrayList<plane>();
-		List <cylinder> cyl = new ArrayList<cylinder>();
-		List<light> lgt = new ArrayList<light>();
+		Camera cam = new Camera();
+		Settings set = new Settings();
+		List <Material> mtl = new ArrayList<Material>();
+		List <Sphere> sph = new ArrayList<Sphere>();
+		List <Plane> pln = new ArrayList<Plane>();
+		List <Cylinder> cyl = new ArrayList<Cylinder>();
+		List<Light> lgt = new ArrayList<Light>();
 
 
 
@@ -110,15 +110,15 @@ public class RayTracer {
                     // Add code here to parse camera parameters
 
 					newArray = Arrays.copyOfRange(params, 0, 3);
-					vector position = new vector(newArray);
+					Point position = new Point(newArray);
 					newArray = Arrays.copyOfRange(params, 3, 6);
-					vector look_at_point = new vector(newArray);
+					Point look_at_point = new Point(newArray);
 					newArray = Arrays.copyOfRange(params, 6, 9);
-					vector up_vector = new vector(newArray);
+					Point up_vector = new Point(newArray);
 					int screen_dist = Integer.parseInt(params[9]);
 					int screen_width = Integer.parseInt(params[9]);	
 
-					cam = new camera(position,look_at_point,up_vector,screen_dist,screen_width);
+					cam = new Camera(position,look_at_point,up_vector,screen_dist,screen_width);
 
 					System.out.println(String.format("Parsed camera parameters (line %d)", lineNum));
 				}
@@ -126,10 +126,10 @@ public class RayTracer {
 				{
                                         // Add code here to parse general settings parameters
 					newArray = Arrays.copyOfRange(params, 0, 3);
-					vector background_col = new vector(newArray);
+					Point background_col = new Point(newArray);
 					int root_num_shadow_rays = Integer.parseInt(params[3]);
 					int max_num_recurs = Integer.parseInt(params[3]);
-					set = new settings(background_col,root_num_shadow_rays,max_num_recurs);
+					set = new Settings(background_col,root_num_shadow_rays,max_num_recurs);
 					
 
 
@@ -140,15 +140,15 @@ public class RayTracer {
 				{
                                         // Add code here to parse material parameters
 					newArray = Arrays.copyOfRange(params, 0, 3);
-					vector diffuse_col = new vector(newArray);
+					Point diffuse_col = new Point(newArray);
 					newArray = Arrays.copyOfRange(params, 3, 6);
-					vector specular_col = new vector(newArray);
+					Point specular_col = new Point(newArray);
 					newArray = Arrays.copyOfRange(params, 6, 9);
-					vector reflection_col = new vector(newArray);
+					Point reflection_col = new Point(newArray);
 					float phong_specular_coeff = Float.parseFloat(params[9]);
 					double transparency = Double.parseDouble(params[10]);
 					
-					material tmp = new material(diffuse_col, specular_col, phong_specular_coeff, reflection_col, transparency);
+					Material tmp = new Material(diffuse_col, specular_col, phong_specular_coeff, reflection_col, transparency);
 					mtl.add(tmp);
 
 
@@ -169,10 +169,10 @@ public class RayTracer {
                                         // sphere.setMaterial(params[4]);
 					
 					newArray = Arrays.copyOfRange(params, 0, 3);
-					vector position = new vector(newArray);
+					Point position = new Point(newArray);
 					double raduis = Double.parseDouble(params[3]);
 					int material_index = Integer.parseInt(params[4]);
-					sphere tmp = new sphere(position, raduis, material_index);
+					Sphere tmp = new Sphere(position, raduis, material_index);
 					sph.add(tmp);
 
 					System.out.println(String.format("Parsed sphere (line %d)", lineNum));
@@ -181,10 +181,10 @@ public class RayTracer {
 				{
                                         // Add code here to parse plane parameters
 					newArray = Arrays.copyOfRange(params, 0, 3);
-					vector normal = new vector(newArray);
+					Point normal = new Point(newArray);
 					int offset = Integer.parseInt(params[3]);
 					int material_index = Integer.parseInt(params[4]);
-					plane tmp = new plane(normal, offset, material_index);
+					Plane tmp = new Plane(normal, offset, material_index);
 					pln.add(tmp);
 					
 					System.out.println(String.format("Parsed plane (line %d)", lineNum));
@@ -193,13 +193,13 @@ public class RayTracer {
 				{
                                         // Add code here to parse cylinder parameters
 					newArray = Arrays.copyOfRange(params, 0, 3);
-					vector position = new vector(newArray);
+					Point position = new Point(newArray);
 					double length = Double.parseDouble(params[3]);
 					double radius = Double.parseDouble(params[4]);
 					newArray = Arrays.copyOfRange(params, 5, 8);
-					vector rotation = new vector(newArray);
+					Point rotation = new Point(newArray);
 					int material_index = Integer.parseInt(params[8]);
-					cylinder tmp = new cylinder(position, length, radius, rotation, material_index);
+					Cylinder tmp = new Cylinder(position, length, radius, rotation, material_index);
 					cyl.add(tmp);
 
 
@@ -211,13 +211,13 @@ public class RayTracer {
 				{
                                         // Add code here to parse light parameters
 					newArray = Arrays.copyOfRange(params, 0, 3);
-					vector position = new vector(newArray);
+					Point position = new Point(newArray);
 					newArray = Arrays.copyOfRange(params, 3, 6);
-					vector color = new vector(newArray);
+					Point color = new Point(newArray);
 					float specular_intensity = Float.parseFloat(params[6]);
 					float shadow_intensity = Float.parseFloat(params[7]);
 					float radius = Float.parseFloat(params[8]);
-					light tmp = new light(position, color, specular_intensity, shadow_intensity, radius);
+					Light tmp = new Light(position, color, specular_intensity, shadow_intensity, radius);
 					lgt.add(tmp);
 
 					
@@ -238,7 +238,7 @@ public class RayTracer {
                 // for example camera settings and all necessary materials were defined.
 
 		System.out.println("Finished parsing scene file " + sceneFileName);
-		thisScene = new scene(cam, set, mtl, sph, pln, cyl, lgt);
+		thisScene = new Scene(cam, set, mtl, sph, pln, cyl, lgt);
 
 	}
 
