@@ -6,6 +6,9 @@ public class camera {
 	private vector look_at_point;
 	private vector up_vector;
 	private float screen_distance;
+	public camera() {
+		super();
+	}
 	private float screen_width;
 	private double background_col;
 	private int num_shadow_rays;
