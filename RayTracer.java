@@ -253,7 +253,9 @@ public class RayTracer {
 			for (int j = 0; j < this.imageHeight; j++) {
 				Ray ray = constructRayThroughPixel(i, j,this.imageWidth,this.imageHeight,thisScene.getCam());
 				Intersection hit = FindIntersection(ray);
-				//rgbData[i][j] = GetColor(hit);
+				if (hit.getObjects().size()!=0){
+					//rgbData[i][j] = GetColor(hit);
+				}
 			}
 			
 
@@ -346,7 +348,7 @@ public class RayTracer {
 				distances.add(t);
 			}
 		}
-		return new Intersection(objects, distances,ray);
+		return new Intersection(intersection_objects, distances,ray);
 	}
 	
 	
@@ -354,21 +356,44 @@ public class RayTracer {
 	
 
 
+//	public Ray constructRayThroughPixel(int i, int j, int width, int height, Camera Cam) {
+//		Tuple3D direction =  Cam.getLook_at_point();//.normalized()
+//		Tuple3D Up =  Cam.getUp_vector();
+//		Tuple3D cam_pos =   Cam.getPosition();
+//		Tuple3D right = direction.cross(Up);
+//		Tuple3D v = right.cross(direction);
+//		float screen_width = Cam.getScreen_width();
+//		float screen_heigth = (height*screen_width)/width;
+//		Tuple3D u = right.scale(width *(screen_width/2));//_mull_pixelWidth_and_halfScreenWidth
+//		Tuple3D new_v = v.scale(height * (screen_heigth/2));//_mull_pixelHeight_and_halfScreenHeight
+//		Tuple3D tmp = (right.scale(width/2)).sub(v.scale(height/2));
+//		Tuple3D u_plus_new_v_plus_tmp = (u.add(new_v)).add(tmp);
+//		Tuple3D pixel_cal = cam_pos.add(direction.sub(u_plus_new_v_plus_tmp));
+//
+//	return new Ray(cam_pos, pixel_cal);
+//}
+	
 	public Ray constructRayThroughPixel(int i, int j, int width, int height, Camera Cam) {
+		double xDir = (j - width / 2f);
+		double yDir = (i - height / 2f);
+		double screen_width = Cam.getScreen_width();
+		double screen_heigth = (height*screen_width)/width;
+		double tan_pi_div2 = screen_heigth*height/2;
+		double tan_pi2_div2 = screen_width*width/2;
 		Tuple3D direction =  Cam.getLook_at_point();//.normalized()
 		Tuple3D Up =  Cam.getUp_vector();
 		Tuple3D cam_pos =   Cam.getPosition();
 		Tuple3D right = direction.cross(Up);
 		Tuple3D v = right.cross(direction);
-		float screen_width = Cam.getScreen_width();
-		float screen_heigth = (height*screen_width)/width;
-		Tuple3D u = right.scale(width *(screen_width/2));//_mull_pixelWidth_and_halfScreenWidth
-		Tuple3D new_v = v.scale(height * (screen_heigth/2));//_mull_pixelHeight_and_halfScreenHeight
-		Tuple3D u_plus_new_v = u.add(new_v);
-		Tuple3D pixel_cal = cam_pos.add(direction.sub(u_plus_new_v));
 
-	return new Ray(cam_pos, pixel_cal);
-}
+		Tuple3D u1 = right.scale(Cam.getScreen_distance()*tan_pi_div2);
+		Tuple3D u2 = v.scale(Cam.getScreen_distance()*tan_pi2_div2);
+		double alpha = 2*(i+0.5)/width -1;
+		double beta = 1- 2*(j+0.5)/height;
+		Tuple3D dir = (u1.scale(alpha)).add(u2.scale(beta));
+
+		return new Ray(cam_pos, dir);
+	}
 	
 	
 
