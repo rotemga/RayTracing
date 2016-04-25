@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.rmi.CORBA.Util;
 
 //import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
@@ -115,8 +116,8 @@ public class RayTracer {
 					
 					Tuple3D up_vector = new Tuple3D(params[6],params[7],params[8]);
 					
-					int screen_dist = Integer.parseInt(params[9]);
-					int screen_width = Integer.parseInt(params[10]);	
+					float screen_dist = Float.parseFloat(params[9]);
+					float screen_width = Float.parseFloat(params[10]);	
 
 					cam = new Camera(position,look_at_point,up_vector,screen_dist,screen_width);
 					
@@ -257,8 +258,9 @@ public class RayTracer {
 		
 		
 		System.out.println("rendering image: "+imageWidth+" * "+imageHeight);
+
 		for (int i = 0; i < this.imageWidth; i++) {
-			
+		
 			for (int j = 0; j < this.imageHeight; j++) {
 				Ray ray = constructRayThroughPixel(i, j,this.imageWidth,this.imageHeight,thisScene.getCam());
 				if(i==249 && j==249) {
@@ -315,7 +317,7 @@ public class RayTracer {
 				GetColor(hit,hit.getIntersectionAfter(primitiveIntersection.getDistance()))
 				:new Color(0,0,0); //doesn't matter at all... 
 		 
-		
+		//return ((backgroundColor.scale(transparancy)).add((mat.getDiffuse_col().add(mat.getSpecular_col())).scale(1-transparancy)));
 		return mat.getDiffuse_col().scale(1-transparancy).add(backgroundColor);
 		
 	}
@@ -387,10 +389,12 @@ public class RayTracer {
 	
 	
 	public Ray constructRayThroughPixel(int i, int j, int width, int height, Camera Cam) {
-		double pixelSize=Cam.getScreen_width()/width;
+		double screen_heigth = (height*Cam.getScreen_width())/width;
+		double pixelSizeWidth=Cam.getScreen_width()/width;
+		double pixelSizeHeight = screen_heigth/height;
 		
-		double offsetSide	=	pixelSize*(	(j - width /2f) +0.5);
-		double offsetVertical	=	pixelSize*(	(i - height/2f) +0.5); 
+		double offsetSide	=	pixelSizeWidth*(	(i - width /2f) +0.5);
+		double offsetVertical	=	pixelSizeHeight*(	(j - height/2f) +0.5); 
 		
 		Tuple3D camPosition=Cam.getPosition();
 		Tuple3D cameraDirection = new Tuple3D(Cam.getLook_at_point(),Cam.getPosition()).normalized();
@@ -404,7 +408,6 @@ public class RayTracer {
 		
 		return new Ray(camPosition, pixelPosition.sub(camPosition));
 	}
-	
 	
 
 }

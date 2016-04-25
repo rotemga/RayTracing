@@ -28,24 +28,18 @@ public class Plane extends Object3D{
 		this.offset = offset;
 	}
 	
-//	@Override
-//	public Intersection intersectsRay(Ray ray) {
-//		double denom = normal.dotFactor(ray.getDirection());
-//		if (Math.abs(denom) > 0.0001f) // your favorite epsilon
-//		{
-//		    float t = (center - ray.getOrigin()).dotFactor(normal) / denom;
-//		    if (t >= 0) return true; // you might want to allow an epsilon here too
-//		}
-//		return false;
-//		
-//		return null;
-//	}
+
 	
 	@Override
 	public double getIntersection(Ray ray)
 	{
+		double denom = normal.dotFactor(ray.getDirection());
+		if (Math.abs(denom) > 10E-9f) 
+		{
+		    double t = (normal.sub(ray.getOrigin())).dotFactor(normal) / denom;
+		    if (t >= 0) return t; 
+		}
+		return -1;
 
-
-	    return -1;
 	}
 }

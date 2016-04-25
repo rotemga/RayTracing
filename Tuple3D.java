@@ -29,6 +29,10 @@ public class Tuple3D{
     public Tuple3D cross(Tuple3D B) {
         return new Tuple3D(this.y*B.z - this.z*B.y, this.z*B.x - this.x*B.z, this.x*B.y - this.y*B.x);
     }
+    
+    public Tuple3D cross(Tuple3D A,Tuple3D B) {
+        return new Tuple3D(A.y*B.z - A.z*B.y, A.z*B.x - A.x*B.z, A.x*B.y - A.y*B.x);
+    }
 	
     public Tuple3D mull(Tuple3D other) {
         return new Tuple3D(this.x*other.getX(), this.y*other.getY(), this.z*other.getZ());
