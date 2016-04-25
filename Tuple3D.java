@@ -76,5 +76,7 @@ public class Tuple3D{
 	public double distance(Tuple3D other) {
 		return sub(other).norm();
 	}
-
+	
+	@Override
+	public String toString(){return String.format("(%.4f,%.4f,%.4f)", x,y,z);}
 }

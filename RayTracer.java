@@ -9,9 +9,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+
 import java.util.List;
 
 import javax.imageio.ImageIO;
+
+//import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 /**
  *  Main class for ray tracing exercise.
@@ -26,7 +30,6 @@ public class RayTracer {
 	 * Runs the ray tracer. Takes scene file, output image file and image size as input.
 	 */
 	public static void main(String[] args) {
-
 		try {
 
 			RayTracer tracer = new RayTracer();
@@ -219,12 +222,15 @@ public class RayTracer {
 					System.out.println(String.format("ERROR: Did not recognize object: %s (line %d)", code, lineNum));
 				}
 			}
+			
 		}
 
                 // It is recommended that you check here that the scene is valid,
                 // for example camera settings and all necessary materials were defined.
 
+		r.close();
 		System.out.println("Finished parsing scene file " + sceneFileName);
+		
 		
 		if(cam==null){
 			throw new RuntimeException("Error: no camera specification found");
@@ -233,7 +239,7 @@ public class RayTracer {
 			throw new RuntimeException("Error: no settings found");
 		}
 		thisScene = new Scene(cam, set, mtl, objects, lgt);
-
+		
 	}
 
 	/**
@@ -249,32 +255,27 @@ public class RayTracer {
 		
 		
 		
+		
+		System.out.println("rendering image: "+imageWidth+" * "+imageHeight);
 		for (int i = 0; i < this.imageWidth; i++) {
+			
 			for (int j = 0; j < this.imageHeight; j++) {
 				Ray ray = constructRayThroughPixel(i, j,this.imageWidth,this.imageHeight,thisScene.getCam());
-				Intersection hit = FindIntersection(ray);
-				if (hit.getObjects().size()!=0){
-					//rgbData[i][j] = GetColor(hit);
+				if(i==249 && j==249) {
+					System.out.format("shooting ray: %s => %s through pixel (%d,%d)\n",ray.getOrigin(),ray.getDirection(),i,j);
 				}
+				Intersection hit = new Intersection(this.thisScene.getObjects(), ray);
+				
+				Color hitColor=GetColor(hit);
+				rgbData[3*(i+this.imageWidth*j)] = toByte(hitColor.getR());
+				rgbData[3*(i+this.imageWidth*j)+1] = toByte(hitColor.getG());
+				rgbData[3*(i+this.imageWidth*j)+2] = toByte(hitColor.getB());
+				//System.out.format("just inserted: %d %d %d \n",rgbData[i+this.imageWidth*j],rgbData[i+this.imageWidth*j+1],rgbData[i+this.imageWidth*j+2]);
+				
 			}
 			
-
+			
 		}
-                // Put your ray tracing code here!
-                //
-                // Write pixel color values in RGB format to rgbData:
-                // Pixel [x, y] red component is in rgbData[(y * this.imageWidth + x) * 3]
-                //            green component is in rgbData[(y * this.imageWidth + x) * 3 + 1]
-                //             blue component is in rgbData[(y * this.imageWidth + x) * 3 + 2]
-                //
-                // Each of the red, green and blue components should be a byte, i.e. 0-255
-		
-
-		
-		
-		
-		
-
 
 		long endTime = System.currentTimeMillis();
 		Long renderTime = endTime - startTime;
@@ -290,8 +291,39 @@ public class RayTracer {
 
 	}
 
-
-
+	public byte toByte(double d){
+		double bounded=Math.max(Math.min(1, d), 0);
+		
+		Long valueAsLong=new Long(Math.round(bounded*255)&0xff);
+		return valueAsLong.byteValue();
+		//return (new Long(Math.round(255*bounded))).byteValue();
+		
+	}
+	public Color GetColor(Intersection hit){
+		return GetColor(hit,hit.getFirstIntersection());
+	}
+	
+	public Color GetColor(Intersection hit,Intersection.SingleIntersection primitiveIntersection){
+		if(primitiveIntersection==null) return thisScene.getSet().getBackgrouad_col();
+		
+		Object3D closestObject=primitiveIntersection.getObject();
+		
+		Material mat=closestObject.getMaterial();
+		
+		double transparancy=mat.getTransparency();
+		Color backgroundColor =(transparancy>0)?
+				GetColor(hit,hit.getIntersectionAfter(primitiveIntersection.getDistance()))
+				:new Color(0,0,0); //doesn't matter at all... 
+		 
+		
+		return mat.getDiffuse_col().scale(1-transparancy).add(backgroundColor);
+		
+	}
+	/*
+	 * (background color) * transparency
+ + (diffuse + specular) * (1 - transparency)
+ + (reflection color)
+	 * */
 
 	//////////////////////// FUNCTIONS TO SAVE IMAGES IN PNG FORMAT //////////////////////////////////////////
 
@@ -327,13 +359,14 @@ public class RayTracer {
 	    return result;
 	}
 
+	@SuppressWarnings("serial")
 	public static class RayTracerException extends Exception {
 		public RayTracerException(String msg) {  super(msg); }
 	}
 
 	
 
-	
+	/*
 	Intersection FindIntersection(Ray ray)
 	{
 		List<Object3D> intersection_objects = new ArrayList<Object3D>();
@@ -348,51 +381,28 @@ public class RayTracer {
 				distances.add(t);
 			}
 		}
+		
 		return new Intersection(intersection_objects, distances,ray);
-	}
+	}*/
 	
-	
-
-	
-
-
-//	public Ray constructRayThroughPixel(int i, int j, int width, int height, Camera Cam) {
-//		Tuple3D direction =  Cam.getLook_at_point();//.normalized()
-//		Tuple3D Up =  Cam.getUp_vector();
-//		Tuple3D cam_pos =   Cam.getPosition();
-//		Tuple3D right = direction.cross(Up);
-//		Tuple3D v = right.cross(direction);
-//		float screen_width = Cam.getScreen_width();
-//		float screen_heigth = (height*screen_width)/width;
-//		Tuple3D u = right.scale(width *(screen_width/2));//_mull_pixelWidth_and_halfScreenWidth
-//		Tuple3D new_v = v.scale(height * (screen_heigth/2));//_mull_pixelHeight_and_halfScreenHeight
-//		Tuple3D tmp = (right.scale(width/2)).sub(v.scale(height/2));
-//		Tuple3D u_plus_new_v_plus_tmp = (u.add(new_v)).add(tmp);
-//		Tuple3D pixel_cal = cam_pos.add(direction.sub(u_plus_new_v_plus_tmp));
-//
-//	return new Ray(cam_pos, pixel_cal);
-//}
 	
 	public Ray constructRayThroughPixel(int i, int j, int width, int height, Camera Cam) {
-		double xDir = (j - width / 2f);
-		double yDir = (i - height / 2f);
-		double screen_width = Cam.getScreen_width();
-		double screen_heigth = (height*screen_width)/width;
-		double tan_pi_div2 = screen_heigth*height/2;
-		double tan_pi2_div2 = screen_width*width/2;
-		Tuple3D direction =  Cam.getLook_at_point();//.normalized()
+		double pixelSize=Cam.getScreen_width()/width;
+		
+		double offsetSide	=	pixelSize*(	(j - width /2f) +0.5);
+		double offsetVertical	=	pixelSize*(	(i - height/2f) +0.5); 
+		
+		Tuple3D camPosition=Cam.getPosition();
+		Tuple3D cameraDirection = new Tuple3D(Cam.getLook_at_point(),Cam.getPosition()).normalized();
+		Tuple3D viewPlaneCenter= Cam.getPosition().add(cameraDirection.scale(Cam.getScreen_distance()));
+		
 		Tuple3D Up =  Cam.getUp_vector();
-		Tuple3D cam_pos =   Cam.getPosition();
-		Tuple3D right = direction.cross(Up);
-		Tuple3D v = right.cross(direction);
+		Tuple3D Side = cameraDirection .cross(Up).normalized();
+		Tuple3D Vertical = Side.cross(cameraDirection).normalized();
 
-		Tuple3D u1 = right.scale(Cam.getScreen_distance()*tan_pi_div2);
-		Tuple3D u2 = v.scale(Cam.getScreen_distance()*tan_pi2_div2);
-		double alpha = 2*(i+0.5)/width -1;
-		double beta = 1- 2*(j+0.5)/height;
-		Tuple3D dir = (u1.scale(alpha)).add(u2.scale(beta));
-
-		return new Ray(cam_pos, dir);
+		Tuple3D pixelPosition = viewPlaneCenter.add(Side.scale(offsetSide)).add(Vertical.scale(offsetVertical)); 
+		
+		return new Ray(camPosition, pixelPosition.sub(camPosition));
 	}
 	
 	

@@ -19,6 +19,14 @@ public class Color {
 		this(c.R_VAL,c.G_VAL,c.G_VAL);
 	}
 	
+	public Color scale(double scalar){
+		return new Color(R_VAL*scalar,G_VAL*scalar,B_VAL*scalar);
+	}
+	public Color add(Color other){
+		return new Color(R_VAL+other.R_VAL,G_VAL*other.G_VAL,B_VAL*other.B_VAL);
+	}
+
+	
 	public double getR() {	return R_VAL;}
 	public double getG() { return G_VAL;}
 	public double getB() { return B_VAL; }
@@ -27,4 +35,7 @@ public class Color {
 	public void setG(int g_VAL) { G_VAL = g_VAL; }
 	public void setB(int b_VAL) { B_VAL = b_VAL; }
 
+
+	
+	
 }

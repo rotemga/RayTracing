@@ -6,9 +6,13 @@ public class Ray {
 
     public Ray(Tuple3D position, Tuple3D Direction) {
         origin = new Tuple3D(position);
-        direction = Direction.normalized();
+        if ((Direction.getX()!=0) || (Direction.getY()!=0) || (Direction.getZ()!=0)){
+        	direction = Direction.normalized();
     }
-    
+        else{
+        	direction = Direction;
+        }
+    }
     
 
     

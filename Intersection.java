@@ -1,95 +1,74 @@
 package RayTracing;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.ArrayList;
+
 
 public class Intersection {
 
 
+	private List<SingleIntersection> allIntersections;
 	
-	private List<Object3D> objects;
-	private List<Double> distances;
-	private Ray ray;
-
-
-	public Intersection(List<Object3D> primitives, List<Double> distances, Ray ray) {
-		this.objects = primitives;
-		this.distances = distances;
-		this.ray = ray;
+	public Intersection(List<Object3D> primitives,Ray ray){
+		allIntersections=new ArrayList<SingleIntersection>();
+		
+		double curTmpDistance;
+		for(Object3D obj:primitives){
+			curTmpDistance=obj.getIntersection(ray);
+			if(curTmpDistance>0 ){
+				allIntersections.add(new SingleIntersection(
+						ray.getOrigin().add(ray.getDirection().scale(curTmpDistance)), obj, curTmpDistance
+				));		
+			}
+		}
+		allIntersections.sort(new Comparator<SingleIntersection>(){
+			@Override
+			public int compare(SingleIntersection o1, SingleIntersection o2) {
+				double distSub=o1.distance -o2.distance;
+				return (distSub<0)	?	-1	:(	(distSub>0)	?1:0);
+			}
+			
+			
+		});
+		
+	}
+	
+	public SingleIntersection getFirstIntersection(){
+		return getIntersectionAfter(0);
+	}
+	
+	public SingleIntersection getIntersectionAfter(double minDistance) {
+		for(SingleIntersection intersection: allIntersections){
+			if(intersection.distance>minDistance){
+				return intersection;
+			}
+		}
+		return null;
 	}
 
-
-
-
-
-	public Ray getRay() {
-		return ray;
-	}
-
-
-
-
-
-	public void setRay(Ray ray) {
-		this.ray = ray;
-	}
-
-
-
-
-
-	public List<Object3D> getObjects() {
-		return objects;
-	}
-
-
-
-
-
-	public void setObjects(List<Object3D> objects) {
-		this.objects = objects;
-	}
-
-
-
-
-
-	public List<Double> getDistances() {
-		return distances;
-	}
-
-
-
-
-
-	public void setDistances(List<Double> distances) {
-		this.distances = distances;
-	}
-
-
-
-
-
-	public Intersection() {
-		super();
-	}
-
-//	Intersection FindIntersection(Ray ray, Scene scene)
-//	{
-//		List<Object3D> objects = scene.getObjects();
-//		int min_t = -100000;
-//		int t;
-//		Object3D min_primitive = null;
-//		for (int i=0; i< objects.size();i++) {
-//			t = Intersect(ray, objects.get(i));
-//		if (t < min_t)
-//		min_primitive = objects.get(i);
-//		min_t = t;
-//		}
-//	
-//		return Intersection(min_t, min_primitive);
-//}
 
 	
+	
+	public class SingleIntersection{
+		private Tuple3D position;
+		private Object3D object;
+		private double distance;
+		
+		SingleIntersection(Tuple3D pos,Object3D obj, double dist){
+			position=pos; object=obj; distance=dist;
+		}
+		
+		public Tuple3D getPosition() {
+			return position;
+		}
 
-    
+		public Object3D getObject() {
+			return object;
+		}
+
+		public double getDistance() {
+			return distance;
+		}
+	}
 }

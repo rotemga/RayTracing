@@ -29,24 +29,50 @@ public class Sphere extends Object3D{
 		this.radius = raduis;
 	}
 	
+	
 	@Override
 	public double getIntersection(Ray ray)
 	{
+		/*
 		Tuple3D v = new Tuple3D(ray.getOrigin());
 		v.sub(position_center);
 	    double b = 2 * ray.getDirection().dotFactor(v);
 	    double c = v.dotFactor(v) - radius * radius;
 	    double d = b * b - 4 * c;
+	    
+	
 	    if(d > 0)
 	    {
+	    	
 	        double x1 = (-b - Math.sqrt(d)) / 2;
 	        double x2 = (-b + Math.sqrt(d)) / 2;
 	        if(x1 >= 0 && x2 >= 0) return x1;
 	        if(x1 < 0 && x2 >= 0) return x2;
-	    }
-	    return -1;
+	    }*/
+		Tuple3D direction	=	ray.getDirection(),
+				origin		=	ray.getOrigin(),
+				subtraction	=	origin.sub(position_center);
+	    
+		// solving ad^2 +bd +c
+	    double 	a= direction.dotFactor(direction),
+	    		b= 2*direction.dotFactor(subtraction),
+	    		c= subtraction.dotFactor(subtraction)-radius*radius;
+	    
+	    double delta=b*b-4*a*c;
+	    if(delta<0) return -1;
+	    
+	    
+	    double sqrtDelta=Math.sqrt(delta);
+	    double solution1=(-b-sqrtDelta)/(2*a);
+	    double solution2=(-b+sqrtDelta)/(2*a);
+	    
+	    return (solution1>0)?solution1:(solution2>0)?solution2:-1;
 	}
 	
+	@Override
+	public String toString(){
+		return String.format("Sphere : (center:%s,radius:%f)\n", this.position_center,this.radius);
+	}
 }	
 //	@Override
 //	public Intersection intersectsRay(Ray ray) {
