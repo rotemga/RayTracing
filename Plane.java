@@ -34,7 +34,7 @@ public class Plane extends Object3D{
 	public double getIntersection(Ray ray)
 	{
 		double denom = normal.dotFactor(ray.getDirection());
-		if (Math.abs(denom) > 10E-9f) 
+		if (Math.abs(denom) > 10E-10f) 
 		{
 		    double t = (normal.sub(ray.getOrigin())).dotFactor(normal) / denom;
 		    if (t >= 0) return t; 
