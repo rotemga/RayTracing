@@ -317,7 +317,6 @@ public class RayTracer {
 				GetColor(hit,hit.getIntersectionAfter(primitiveIntersection.getDistance()))
 				:new Color(0,0,0); //doesn't matter at all... 
 		 
-		//return ((backgroundColor.scale(transparancy)).add((mat.getDiffuse_col().add(mat.getSpecular_col())).scale(1-transparancy)));
 		return mat.getDiffuse_col().scale(1-transparancy).add(backgroundColor);
 		
 	}
