@@ -269,9 +269,9 @@ public class RayTracer {
 				Intersection hit = new Intersection(this.thisScene.getObjects(), ray);
 				
 				Color hitColor=GetColor(hit);
-				rgbData[3*(i+this.imageWidth*j)] = toByte(hitColor.getR());
-				rgbData[3*(i+this.imageWidth*j)+1] = toByte(hitColor.getG());
-				rgbData[3*(i+this.imageWidth*j)+2] = toByte(hitColor.getB());
+				rgbData[3*(i+this.imageWidth*j)] = Color.toByte(hitColor.getR());
+				rgbData[3*(i+this.imageWidth*j)+1] = Color.toByte(hitColor.getG());
+				rgbData[3*(i+this.imageWidth*j)+2] = Color.toByte(hitColor.getB());
 				//System.out.format("just inserted: %d %d %d \n",rgbData[i+this.imageWidth*j],rgbData[i+this.imageWidth*j+1],rgbData[i+this.imageWidth*j+2]);
 				
 			}
@@ -293,6 +293,7 @@ public class RayTracer {
 
 	}
 
+	/*
 	public byte toByte(double d){
 		double bounded=Math.max(Math.min(1, d), 0);
 		
@@ -301,6 +302,7 @@ public class RayTracer {
 		//return (new Long(Math.round(255*bounded))).byteValue();
 		
 	}
+	*/
 	public Color GetColor(Intersection hit){
 		return GetColor(hit,hit.getFirstIntersection());
 	}
@@ -316,8 +318,7 @@ public class RayTracer {
 		Color backgroundColor =(transparancy>0)?
 				GetColor(hit,hit.getIntersectionAfter(primitiveIntersection.getDistance()))
 				:new Color(0,0,0); //doesn't matter at all... 
-		 
-		//return ((backgroundColor.scale(transparancy)).add((mat.getDiffuse_col().add(mat.getSpecular_col())).scale(1-transparancy)));
+		
 		return mat.getDiffuse_col().scale(1-transparancy).add(backgroundColor);
 		
 	}
@@ -393,15 +394,15 @@ public class RayTracer {
 		double pixelSizeWidth=Cam.getScreen_width()/width;
 		double pixelSizeHeight = screen_heigth/height;
 		
-		double offsetSide	=	pixelSizeWidth*(	(i - width /2f) +0.5);
-		double offsetVertical	=	pixelSizeHeight*(	(j - height/2f) +0.5); 
+		double offsetSide	=	pixelSizeWidth*(	(i-width /2f  ) +0.5);
+		double offsetVertical	=	pixelSizeHeight*(	(j-height/2f) +0.5); 
 		
 		Tuple3D camPosition=Cam.getPosition();
 		Tuple3D cameraDirection = new Tuple3D(Cam.getLook_at_point(),Cam.getPosition()).normalized();
 		Tuple3D viewPlaneCenter= Cam.getPosition().add(cameraDirection.scale(Cam.getScreen_distance()));
 		
 		Tuple3D Up =  Cam.getUp_vector();
-		Tuple3D Side = cameraDirection .cross(Up).normalized();
+		Tuple3D Side = Up.cross(cameraDirection).normalized();
 		Tuple3D Vertical = Side.cross(cameraDirection).normalized();
 
 		Tuple3D pixelPosition = viewPlaneCenter.add(Side.scale(offsetSide)).add(Vertical.scale(offsetVertical)); 
