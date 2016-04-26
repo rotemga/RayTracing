@@ -23,7 +23,7 @@ public abstract class Object3D {
 	
 	public abstract double getIntersection(Ray ray);
 
-	
+	public abstract Tuple3D getNormalAt(Tuple3D point);
 	
 	
 }

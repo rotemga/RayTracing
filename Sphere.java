@@ -58,6 +58,11 @@ public class Sphere extends Object3D{
 	public String toString(){
 		return String.format("Sphere : (center:%s,radius:%f)\n", this.position_center,this.radius);
 	}
+
+	@Override
+	public Tuple3D getNormalAt(Tuple3D point) {
+		return point.sub(position_center).normalized();
+	}
 }	
 //	@Override
 //	public Intersection intersectsRay(Ray ray) {

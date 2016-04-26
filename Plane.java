@@ -1,6 +1,5 @@
 package RayTracing;
 
-import javax.management.RuntimeErrorException;
 
 public class Plane extends Object3D{
 	private Tuple3D normal;
@@ -46,5 +45,11 @@ public class Plane extends Object3D{
 	
 		
 		
+	}
+
+
+	@Override
+	public Tuple3D getNormalAt(Tuple3D point) {
+		return normal;
 	}
 }

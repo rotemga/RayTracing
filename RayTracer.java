@@ -262,13 +262,13 @@ public class RayTracer {
 		for (int i = 0; i < this.imageWidth; i++) {
 		
 			for (int j = 0; j < this.imageHeight; j++) {
+				
 				Ray ray = constructRayThroughPixel(i, j,this.imageWidth,this.imageHeight,thisScene.getCam());
-				if(i==249 && j==249) {
-					System.out.format("shooting ray: %s => %s through pixel (%d,%d)\n",ray.getOrigin(),ray.getDirection(),i,j);
-				}
+
 				Intersection hit = new Intersection(this.thisScene.getObjects(), ray);
 				
-				Color hitColor=GetColor(hit);
+				Color hitColor = getColor(0, hit);
+				//Color hitColor=GetColor(hit);
 				rgbData[3*(i+this.imageWidth*j)] = Color.toByte(hitColor.getR());
 				rgbData[3*(i+this.imageWidth*j)+1] = Color.toByte(hitColor.getG());
 				rgbData[3*(i+this.imageWidth*j)+2] = Color.toByte(hitColor.getB());
@@ -290,42 +290,8 @@ public class RayTracer {
 		saveImage(this.imageWidth, rgbData, outputFileName);
 
 		System.out.println("Saved file " + outputFileName);
-	}
 
-	/*
-	public byte toByte(double d){
-		double bounded=Math.max(Math.min(1, d), 0);
-		
-		Long valueAsLong=new Long(Math.round(bounded*255)&0xff);
-		return valueAsLong.byteValue();
-		//return (new Long(Math.round(255*bounded))).byteValue();
-		
 	}
-	*/
-	public Color GetColor(Intersection hit){
-		return GetColor(hit,hit.getFirstIntersection());
-	}
-	
-	public Color GetColor(Intersection hit,Intersection.SingleIntersection primitiveIntersection){
-		if(primitiveIntersection==null) return thisScene.getSet().getBackgrouad_col();
-		
-		Object3D closestObject=primitiveIntersection.getObject();
-		
-		Material mat=closestObject.getMaterial();
-		
-		double transparancy=mat.getTransparency();
-		Color backgroundColor =(transparancy>0)?
-				GetColor(hit,hit.getIntersectionAfter(primitiveIntersection.getDistance()))
-				:new Color(0,0,0); //doesn't matter at all... 
-		
-		return mat.getDiffuse_col().scale(1-transparancy).add(backgroundColor);
-		
-	}
-	/*
-	 * (background color) * transparency
- + (diffuse + specular) * (1 - transparency)
- + (reflection color)
-	 * */
 
 	//////////////////////// FUNCTIONS TO SAVE IMAGES IN PNG FORMAT //////////////////////////////////////////
 
@@ -367,25 +333,6 @@ public class RayTracer {
 	}
 
 	
-
-	/*
-	Intersection FindIntersection(Ray ray)
-	{
-		List<Object3D> intersection_objects = new ArrayList<Object3D>();
-		List<Double> distances = new ArrayList<Double>();
-		double t;
-		List<Object3D> objects = thisScene.getObjects();
-
-		for(int i=0;i<objects.size();i++) {
-			t = (objects.get(i)).getIntersection(ray);
-			if (t!=-1){
-				intersection_objects.add(objects.get(i));
-				distances.add(t);
-			}
-		}
-		
-		return new Intersection(intersection_objects, distances,ray);
-	}*/
 	
 	
 	public Ray constructRayThroughPixel(int i, int j, int width, int height, Camera Cam) {
@@ -409,5 +356,44 @@ public class RayTracer {
 		return new Ray(camPosition, pixelPosition.sub(camPosition));
 	}
 	
-
+	
+	private Color getColor(int currentLevelRecurse, Intersection hit) {
+		if(currentLevelRecurse==10){System.out.println("10"); return new Color(0,0,0);}
+		if (currentLevelRecurse > thisScene.getSet().getMax_num_recurstion())	return thisScene.getSet().getBackgrouad_col();
+		
+		
+		Intersection.SingleIntersection curIntersection = hit.getIntersectionByIndex(currentLevelRecurse);
+		
+		if(curIntersection==null) return thisScene.getSet().getBackgrouad_col();	
+		
+		Object3D curObj=curIntersection.getObject();
+		Material material = curObj.getMaterial();
+		
+		double transparancy=material.getTransparency();
+		
+		Color backgroundColor=(transparancy>0)?getColor(currentLevelRecurse+1,hit):new Color(0,0,0)/*doesn't matter*/;
+		//Color backgroundColor=getColor(currentLevelRecurse+1,hit);
+		
+		
+		Color diffuse = new Color(0,0,0);// material.getDiffuse_col();
+		
+		//System.out.println("before light loop");
+		for(Light light: thisScene.getLgt()){
+			//System.out.println("in light loop");
+			Tuple3D lightPos=light.getPosition();
+			Tuple3D lightDir=lightPos.sub(curIntersection.getPosition()).normalized();
+			
+			double intensity = curIntersection.getNormal().dotFactor(lightDir);
+			
+			Color lightColor = light.getColor();
+			Color diffuseForThisLight = lightColor.scale(intensity);
+			diffuse= diffuse.add(diffuseForThisLight);
+			//Ray lightBeam = new Ray(lightPos,lightDir);
+			//Intersection light_obj_intr= new Intersection(curObj,lightBeam);
+			
+		}
+		diffuse=diffuse.mult(material.getDiffuse_col()); 
+				
+		return diffuse.scale(1-transparancy).add(backgroundColor.scale(transparancy));
+	}
 }

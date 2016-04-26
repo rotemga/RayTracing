@@ -2,7 +2,7 @@ package RayTracing;
 
 
 public class Color {
-	private double R_VAL,G_VAL,B_VAL;
+	private final double R_VAL,G_VAL,B_VAL;
 	
 	public static byte toByte(double d){
 		double bounded=Math.max(Math.min(1, d), 0);
@@ -14,9 +14,9 @@ public class Color {
 	}
 	
 	public Color(double r,double g,double b){
-		R_VAL=(r > 1)? 1:r;
-		G_VAL=(g > 1)? 1:g;
-		B_VAL=(b > 1)? 1:b;
+		R_VAL=Math.min(Math.max(r, 0), 1);
+		G_VAL=Math.min(Math.max(g, 0), 1);
+		B_VAL=Math.min(Math.max(b, 0), 1);
 	}
 
 	public Color(String rStr,String gStr,String bStr){
@@ -39,13 +39,17 @@ public class Color {
 	public double getG() { return G_VAL;}
 	public double getB() { return B_VAL; }
 
-	public void setR(int r_VAL) { R_VAL = r_VAL;}
-	public void setG(int g_VAL) { G_VAL = g_VAL; }
-	public void setB(int b_VAL) { B_VAL = b_VAL; }
+//	public void setR(int r_VAL) { R_VAL = r_VAL;}
+//	public void setG(int g_VAL) { G_VAL = g_VAL; }
+//	public void setB(int b_VAL) { B_VAL = b_VAL; }
 
 	@Override
 	public String toString(){
 		return String.format("Color (%d,%d,%d)",Color.toByte(R_VAL),Color.toByte(G_VAL),Color.toByte(B_VAL));
+	}
+
+	public Color mult(Color other) {
+		return new Color(R_VAL*other.R_VAL,G_VAL*other.G_VAL,B_VAL*other.B_VAL);
 	}
 	
 	
