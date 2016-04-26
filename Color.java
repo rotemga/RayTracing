@@ -45,7 +45,7 @@ public class Color {
 
 	@Override
 	public String toString(){
-		return String.format("Color (%d,%d,%d)",Color.toByte(R_VAL),Color.toByte(G_VAL),Color.toByte(B_VAL));
+		return String.format("Color(%.3f,%.3f,%.3f)",R_VAL,G_VAL,B_VAL);
 	}
 
 	public Color mult(Color other) {

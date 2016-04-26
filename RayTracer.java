@@ -269,7 +269,7 @@ public class RayTracer {
 
 				Intersection hit = new Intersection(this.thisScene.getObjects(), ray);
 				
-				
+				stop=(i==75&&j==75);
 				Color hitColor = getColor(0, hit);
 				//Color hitColor=GetColor(hit);
 				rgbData[3*(i+this.imageWidth*j)] = Color.toByte(hitColor.getR());
@@ -336,8 +336,6 @@ public class RayTracer {
 	}
 
 	
-	
-	
 	public Ray constructRayThroughPixel(int i, int j, int width, int height, Camera Cam) {
 		double screen_heigth = (height*Cam.getScreen_width())/width;
 		double pixelSizeWidth=Cam.getScreen_width()/width;
@@ -359,9 +357,9 @@ public class RayTracer {
 		return new Ray(camPosition, pixelPosition.sub(camPosition));
 	}
 	
-	
+	private boolean stop=false;
 	private Color getColor(int currentLevelRecurse, Intersection hit) {
-		if(currentLevelRecurse==10){System.out.println("10"); return new Color(0,0,0);}
+		if(currentLevelRecurse==10){return new Color(0,0,0);}
 		if (currentLevelRecurse > thisScene.getSet().getMax_num_recurstion())	return thisScene.getSet().getBackgrouad_col();
 		
 		
@@ -375,10 +373,24 @@ public class RayTracer {
 		double transparancy=material.getTransparency();
 		
 		Color backgroundColor=(transparancy>0)?getColor(currentLevelRecurse+1,hit):new Color(0,0,0)/*doesn't matter*/;
-		//Color backgroundColor=getColor(currentLevelRecurse+1,hit);
+
+		//the direction from the point of contact to this ray
+		Tuple3D hitNormal =curIntersection.getHitNormal();
 		
+		//the object normal at the point of contact 
+		Tuple3D curIntersectionNormal = curIntersection.getNormal();
 		
-		Color diffuse = new Color(0,0,0);// material.getDiffuse_col();
+		Tuple3D reflectedDirection = curIntersectionNormal.scale(2*hitNormal.dotFactor(curIntersectionNormal)).sub(hitNormal);
+		Ray reflectedRay = new Ray(curIntersection.getPosition(),reflectedDirection);
+
+		List<Object3D> otherObjects = new ArrayList<Object3D>(thisScene.getObjects());
+		otherObjects.remove(curObj);
+		Intersection reflectedIntersection = new Intersection(otherObjects, reflectedRay);
+		
+		Color reflection=(getColor(currentLevelRecurse+1,reflectedIntersection)).mult(material.getReflection_col());
+		
+		Color diffuse = new Color(0,0,0);
+		Color specular =new Color(0,0,0);
 		
 		//System.out.println("before light loop");
 		for(Light light: thisScene.getLgt()){
@@ -386,17 +398,38 @@ public class RayTracer {
 			Tuple3D lightPos=light.getPosition();
 			Tuple3D lightDir=lightPos.sub(curIntersection.getPosition()).normalized();
 			
-			double intensity = Math.max(Math.min(curIntersection.getNormal().dotFactor(lightDir), 1), 0);
+			
+			double intensity = Math.max(Math.min(curIntersectionNormal.dotFactor(lightDir), 1), 0);
 			
 			Color lightColor = light.getColor();
 			Color diffuseForThisLight = lightColor.scale(intensity);
 			diffuse= diffuse.add(diffuseForThisLight);
 			//Ray lightBeam = new Ray(lightPos,lightDir);
 			//Intersection light_obj_intr= new Intersection(curObj,lightBeam);
+		
 			
+			
+			Tuple3D lightReturnDirection = curIntersectionNormal.scale(2*lightDir.dotFactor(curIntersectionNormal)).sub(lightDir);
+			
+			
+			double cosinusTheta=lightReturnDirection.dotFactor(hitNormal);
+			
+			if(cosinusTheta>0){
+				double specularValue= light.getSpecular_intensity()*Math.pow(cosinusTheta, material.getPhong_specular_coeff());
+
+				specular=specular.add(lightColor.scale(specularValue));
+			}
 		}
+		
+		
+		
+		
+		
 		diffuse=diffuse.mult(material.getDiffuse_col()); 
-				
-		return diffuse.scale(1-transparancy).add(backgroundColor.scale(transparancy));
+		//System.out.format("specular: %s*%s=%s\n",specular,material.getSpecular_col(),specular.mult(material.getSpecular_col()));
+		specular=specular.mult(material.getSpecular_col());
+		
+		//System.out.println(specular);
+		return (diffuse.add(specular).scale(1-transparancy).add(backgroundColor.scale(transparancy)));//.add(reflection);
 	}
 }

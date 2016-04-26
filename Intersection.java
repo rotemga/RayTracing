@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Intersection {
 
 	private List<SingleIntersection> allIntersections;
-	
+	/*
 	public Intersection(Object3D obj,Ray ray){
 		allIntersections=new ArrayList<SingleIntersection>();
 		double distance=obj.getIntersection(ray);
@@ -16,7 +16,7 @@ public class Intersection {
 			Tuple3D location=ray.getLocationAtTime(distance);
 			allIntersections.add(new SingleIntersection(location, obj, distance));		
 		}
-	}
+	}*/
 	
 	public Intersection(List<Object3D> primitives,Ray ray){
 		allIntersections=new ArrayList<SingleIntersection>();
@@ -27,7 +27,7 @@ public class Intersection {
 			if(curTmpDistance>0 ){
 				Tuple3D location=ray.getLocationAtTime(curTmpDistance);
 				allIntersections.add(new SingleIntersection(
-						location, obj, curTmpDistance
+						location, obj, curTmpDistance,ray.getDirection().scale(-1)
 				));		
 			}
 		}
@@ -67,12 +67,13 @@ public class Intersection {
 	
 	public class SingleIntersection{
 		private Tuple3D position;
-		
+		private Tuple3D hitNormal;		
 		private Object3D object;
 		private double distance;
 		
-		SingleIntersection(Tuple3D pos,Object3D obj, double dist){
-			position=pos;  object=obj; distance=dist;
+		
+		SingleIntersection(Tuple3D pos,Object3D obj, double dist,Tuple3D hitNorm){
+			position=pos;  object=obj; distance=dist; hitNormal=hitNorm;
 		}
 		public Tuple3D getNormal() {
 			return object.getNormalAt(position);
@@ -87,6 +88,10 @@ public class Intersection {
 
 		public double getDistance() {
 			return distance;
+		}
+		
+		public Tuple3D getHitNormal(){
+			return hitNormal;
 		}
 	}
 }
