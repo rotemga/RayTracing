@@ -59,7 +59,9 @@ public class Cylinder extends Object3D{
 	
 	@Override
 	public Tuple3D getNormalAt(Tuple3D point) {
-		return reRotate(niceCylVersion.getNormalAt(deRotate(point)));
+
+		return reRotate(niceCylVersion.getNormalAt(deRotate(point.sub(this.position))));
+		
 	}
 	
 	/**
@@ -77,16 +79,30 @@ public class Cylinder extends Object3D{
 			radius=origin.radius;
 		}
 		
+		
 		public Tuple3D getNormalAt(Tuple3D point) {
-			if(point.getZ()>=length/2){
-				return new Tuple3D(0,0,1);
-			}
-			if(point.getZ()<=-(length/2)){
-				return new Tuple3D(0,0,-1);
-			}
+			
 			
 			Tuple3D zProjection= new Tuple3D(point.getX(),point.getY(),0);
-			return zProjection.normalized();
+			double distanceFromCenter =Math.abs(zProjection.dotFactor(zProjection)-radius*radius);
+			double distanceFromUpCap=Math.abs(point.getZ() -  length/2);
+			double distanceFromButtomCap=Math.abs(point.getZ() +  length/2);
+			
+			
+			if(distanceFromCenter<=distanceFromUpCap){
+				if(distanceFromCenter<=distanceFromButtomCap){
+					
+					return zProjection.normalized();
+				}
+			}
+			else if(distanceFromUpCap<=distanceFromButtomCap){
+				
+				return new Tuple3D(0,0,1);
+			}
+
+			return new Tuple3D(0,0,-1);
+				
+
 			
 		}
 
@@ -173,7 +189,6 @@ public class Cylinder extends Object3D{
 
 		
 	}
-
 
 	
 }

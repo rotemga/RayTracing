@@ -63,6 +63,8 @@ public class Sphere extends Object3D{
 	public Tuple3D getNormalAt(Tuple3D point) {
 		return point.sub(position_center).normalized();
 	}
+
+
 }	
 //	@Override
 //	public Intersection intersectsRay(Ray ray) {

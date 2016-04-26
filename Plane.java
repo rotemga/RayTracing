@@ -42,8 +42,6 @@ public class Plane extends Object3D{
 		    if (t > 0) return t; 
 		}
 		return -1;
-	
-		
 		
 	}
 
@@ -52,4 +50,7 @@ public class Plane extends Object3D{
 	public Tuple3D getNormalAt(Tuple3D point) {
 		return normal;
 	}
+
+
+
 }

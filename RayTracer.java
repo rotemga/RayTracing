@@ -23,6 +23,8 @@ import javax.rmi.CORBA.Util;
  */
 public class RayTracer {
 
+	
+	
 	public int imageWidth;
 	public int imageHeight;
 	public Scene thisScene;
@@ -267,6 +269,7 @@ public class RayTracer {
 
 				Intersection hit = new Intersection(this.thisScene.getObjects(), ray);
 				
+				
 				Color hitColor = getColor(0, hit);
 				//Color hitColor=GetColor(hit);
 				rgbData[3*(i+this.imageWidth*j)] = Color.toByte(hitColor.getR());
@@ -383,7 +386,7 @@ public class RayTracer {
 			Tuple3D lightPos=light.getPosition();
 			Tuple3D lightDir=lightPos.sub(curIntersection.getPosition()).normalized();
 			
-			double intensity = curIntersection.getNormal().dotFactor(lightDir);
+			double intensity = Math.max(Math.min(curIntersection.getNormal().dotFactor(lightDir), 1), 0);
 			
 			Color lightColor = light.getColor();
 			Color diffuseForThisLight = lightColor.scale(intensity);

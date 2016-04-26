@@ -67,15 +67,15 @@ public class Intersection {
 	
 	public class SingleIntersection{
 		private Tuple3D position;
-		private Tuple3D normal;
+		
 		private Object3D object;
 		private double distance;
 		
 		SingleIntersection(Tuple3D pos,Object3D obj, double dist){
-			position=pos;  object=obj; distance=dist; normal=obj.getNormalAt(pos);
+			position=pos;  object=obj; distance=dist;
 		}
 		public Tuple3D getNormal() {
-			return normal;
+			return object.getNormalAt(position);
 		}
 		public Tuple3D getPosition() {
 			return position;
