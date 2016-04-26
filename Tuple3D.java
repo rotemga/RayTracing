@@ -81,6 +81,22 @@ public class Tuple3D{
 		return sub(other).norm();
 	}
 	
+	public Tuple3D rotateX(double deg){
+		double sin=Math.sin(Math.toRadians(deg));
+		double cos=Math.cos(Math.toRadians(deg));
+		return new Tuple3D(x,y*cos-z*sin,y*sin+z*cos);
+	}
+	public Tuple3D rotateY(double deg){
+		double sin=Math.sin(Math.toRadians(deg));
+		double cos=Math.cos(Math.toRadians(deg));
+		return new Tuple3D(z*sin+x*cos,y,z*cos-x*sin);
+	}
+	public Tuple3D rotateZ(double deg){
+		double sin=Math.sin(Math.toRadians(deg));
+		double cos=Math.cos(Math.toRadians(deg));
+		return new Tuple3D(x*cos-y*sin,x*sin+y*cos,z);
+	}
+	
 	@Override
 	public String toString(){return String.format("(%.4f,%.4f,%.4f)", x,y,z);}
 }

@@ -290,7 +290,6 @@ public class RayTracer {
 		saveImage(this.imageWidth, rgbData, outputFileName);
 
 		System.out.println("Saved file " + outputFileName);
-
 	}
 
 	/*

@@ -33,22 +33,7 @@ public class Sphere extends Object3D{
 	@Override
 	public double getIntersection(Ray ray)
 	{
-		/*
-		Tuple3D v = new Tuple3D(ray.getOrigin());
-		v.sub(position_center);
-	    double b = 2 * ray.getDirection().dotFactor(v);
-	    double c = v.dotFactor(v) - radius * radius;
-	    double d = b * b - 4 * c;
-	    
 	
-	    if(d > 0)
-	    {
-	    	
-	        double x1 = (-b - Math.sqrt(d)) / 2;
-	        double x2 = (-b + Math.sqrt(d)) / 2;
-	        if(x1 >= 0 && x2 >= 0) return x1;
-	        if(x1 < 0 && x2 >= 0) return x2;
-	    }*/
 		Tuple3D direction	=	ray.getDirection(),
 				origin		=	ray.getOrigin(),
 				subtraction	=	origin.sub(position_center);

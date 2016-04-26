@@ -4,9 +4,9 @@ import javax.management.RuntimeErrorException;
 
 public class Plane extends Object3D{
 	private Tuple3D normal;
-	private float offset;
+	private double offset;
 	
-	public Plane(Tuple3D normal, float offset, int material_index) {
+	public Plane(Tuple3D normal, double offset, int material_index) {
 		super(material_index);
 		this.normal = normal.normalized();
 		this.offset = offset;	
@@ -23,9 +23,10 @@ public class Plane extends Object3D{
 	}
 
 
-	public float getOffset() {
+	public double getOffset() {
 		return offset;
 	}
+	
 	public void setOffset(float offset) {
 		this.offset = offset;
 	}

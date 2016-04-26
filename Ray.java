@@ -14,7 +14,9 @@ public class Ray {
         }
     }
     
-
+    public Ray(Ray other){
+    	this(new Tuple3D(other.origin),new Tuple3D(other.direction));
+    }
     
 //	public Ray constructRayThroughPixel(int i, int j, int width, int height, Camera Cam) {
 //		Tuple3D look_at_point =  Cam.getLook_at_point();
@@ -59,8 +61,16 @@ public class Ray {
 	public void setDirection(Tuple3D direction) {
 		this.direction = direction;
 	}
-    
-    
 
+	@Override
+	public String toString(){
+		return "Ray: "+origin+"->"+direction;
+	}
+
+
+    public Tuple3D getLocationAtTime(double time){
+    	return direction.scale(time).add(origin);
+    }
+    
 
 }
