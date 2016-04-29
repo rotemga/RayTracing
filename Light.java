@@ -7,6 +7,8 @@ public class Light {
 	private float specular_intensity;
 	private float shadow_intensity;
 	private float radius;
+	private float[] attenuation = new float[] { 1, 0, 0 };
+
 	public Light(Tuple3D position, Color color, float specular_intensity, float shadow_intensity, float radius) {
 		super();
 		this.position = position;
@@ -44,6 +46,19 @@ public class Light {
 	}
 	public void setRadius(float radius) {
 		this.radius = radius;
+	}
+	
+	public Color getColor(Tuple3D currentPosition) {
+		double r = Math.sqrt(Math.pow(position.getX() - currentPosition.getX(), 2.0)
+				+ Math.pow(position.getY() - currentPosition.getY(), 2.0)
+				+ Math.pow(position.getZ() - currentPosition.getZ(), 2.0));
+		double factor = 1 / Math.max(attenuation[0] + attenuation[1] * r
+				+ attenuation[2] * r * r, 1);
+
+		Color result = new Color(color);
+		result.scale(factor);
+		return result;
+		//return new Tuple3D(color);
 	}
 	
 

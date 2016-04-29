@@ -11,6 +11,9 @@ public abstract class Object3D {
 		if(material==null) throw new RuntimeException("unrecognized material index");
 	}
 
+	public Object3D() {
+	}
+
 	public Material getMaterial() {
 		return material;
 	}
@@ -24,6 +27,5 @@ public abstract class Object3D {
 	public abstract double getIntersection(Ray ray);
 
 	public abstract Tuple3D getNormalAt(Tuple3D point);
-	
 	
 }

@@ -33,6 +33,10 @@ public class Color {
 	public Color add(Color other){
 		return new Color(R_VAL+other.R_VAL,G_VAL+other.G_VAL,B_VAL+other.B_VAL);
 	}
+	
+	public Color sub(Color other){
+		return new Color(R_VAL-other.R_VAL,G_VAL-other.G_VAL,B_VAL-other.B_VAL);
+	}
 
 	
 	public double getR() {	return R_VAL;}

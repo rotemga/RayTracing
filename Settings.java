@@ -18,10 +18,10 @@ public class Settings {
 		this.backgrouad_col = backgrouad_col;
 	}
 	
-	public int getroot_root_root_num_shadow_rays() {
+	public int getRoot_num_shadow_rays() {
 		return root_num_shadow_rays;
 	}
-	public void setroot_root_root_num_shadow_rays(int root_num_shadow_rays) {
+	public void setRoot_num_shadow_rays(int root_num_shadow_rays) {
 		this.root_num_shadow_rays = root_num_shadow_rays;
 	}
 	public int getMax_num_recurstion() {

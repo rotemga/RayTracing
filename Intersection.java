@@ -8,6 +8,7 @@ import java.util.ArrayList;
 public class Intersection {
 
 	private List<SingleIntersection> allIntersections;
+	private Ray Ray;
 	/*
 	public Intersection(Object3D obj,Ray ray){
 		allIntersections=new ArrayList<SingleIntersection>();
@@ -19,6 +20,7 @@ public class Intersection {
 	}*/
 	
 	public Intersection(List<Object3D> primitives,Ray ray){
+		Ray= ray;
 		allIntersections=new ArrayList<SingleIntersection>();
 		
 		double curTmpDistance;
@@ -42,6 +44,12 @@ public class Intersection {
 		});	
 	}
 	
+	public Ray getRay() {
+		return Ray;
+	}
+
+
+
 	public SingleIntersection getFirstIntersection(){
 		return getIntersectionAfter(0);
 	}

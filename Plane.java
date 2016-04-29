@@ -11,6 +11,11 @@ public class Plane extends Object3D{
 		this.offset = offset;	
 	}
 	
+	public Plane(Tuple3D normal, double offset) {
+		super();
+		this.normal = normal.normalized();
+		this.offset = offset;	
+	}
 	
 	public Tuple3D getNormal() {
 		return normal;
@@ -50,7 +55,7 @@ public class Plane extends Object3D{
 	public Tuple3D getNormalAt(Tuple3D point) {
 		return normal;
 	}
-
-
-
+	
 }
+
+

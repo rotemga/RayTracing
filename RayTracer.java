@@ -12,9 +12,12 @@ import java.util.Arrays;
 
 
 import java.util.List;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.rmi.CORBA.Util;
+
+import RayTracing.Intersection.SingleIntersection;
 
 //import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
@@ -28,6 +31,8 @@ public class RayTracer {
 	public int imageWidth;
 	public int imageHeight;
 	public Scene thisScene;
+	Random rnd;
+
 
 	/**
 	 * Runs the ray tracer. Takes scene file, output image file and image size as input.
@@ -255,7 +260,7 @@ public class RayTracer {
 		// Create a byte array to hold the pixel data:
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
 
-		
+		rnd = new Random();
 		
 		
 		
@@ -271,7 +276,7 @@ public class RayTracer {
 				
 				stop=(i==75&&j==75);
 				Color hitColor = getColor(0, hit);
-				//Color hitColor=GetColor(hit);
+
 				rgbData[3*(i+this.imageWidth*j)] = Color.toByte(hitColor.getR());
 				rgbData[3*(i+this.imageWidth*j)+1] = Color.toByte(hitColor.getG());
 				rgbData[3*(i+this.imageWidth*j)+2] = Color.toByte(hitColor.getB());
@@ -359,8 +364,8 @@ public class RayTracer {
 	
 	private boolean stop=false;
 	private Color getColor(int currentLevelRecurse, Intersection hit) {
-		if(currentLevelRecurse==10){return new Color(0,0,0);}
-		if (currentLevelRecurse > thisScene.getSet().getMax_num_recurstion())	return thisScene.getSet().getBackgrouad_col();
+		//if(currentLevelRecurse==thisScene.getSet().getMax_num_recurstion()){return new Color(0,0,0);}
+		if (currentLevelRecurse >= thisScene.getSet().getMax_num_recurstion())	return thisScene.getSet().getBackgrouad_col();
 		
 		
 		Intersection.SingleIntersection curIntersection = hit.getIntersectionByIndex(currentLevelRecurse);
@@ -384,25 +389,35 @@ public class RayTracer {
 		Ray reflectedRay = new Ray(curIntersection.getPosition(),reflectedDirection);
 
 		List<Object3D> otherObjects = new ArrayList<Object3D>(thisScene.getObjects());
-		otherObjects.remove(curObj);
+		//otherObjects.remove(curObj);
 		Intersection reflectedIntersection = new Intersection(otherObjects, reflectedRay);
 		
+		
 		Color reflection=(getColor(currentLevelRecurse+1,reflectedIntersection)).mult(material.getReflection_col());
+
 		
 		Color diffuse = new Color(0,0,0);
 		Color specular =new Color(0,0,0);
+		int rootNumberOfShadowRays = thisScene.getSet().getRoot_num_shadow_rays();
+		int NumberOfShadowRays = rootNumberOfShadowRays*rootNumberOfShadowRays;
+		double shadow = 1.0;
 		
 		//System.out.println("before light loop");
 		for(Light light: thisScene.getLgt()){
 			//System.out.println("in light loop");
 			Tuple3D lightPos=light.getPosition();
 			Tuple3D lightDir=lightPos.sub(curIntersection.getPosition()).normalized();
-			
+			Color lightColor = light.getColor();
+
+
+			shadow = SoftShadow(curIntersection,light,lightDir.scale(-1),NumberOfShadowRays);
+
+			//Color shadowTuple = new Color (shadow,shadow,shadow);
+			//lightColor = lightColor.sub(shadowTuple);
 			
 			double intensity = Math.max(Math.min(curIntersectionNormal.dotFactor(lightDir), 1), 0);
 			
-			Color lightColor = light.getColor();
-			Color diffuseForThisLight = lightColor.scale(intensity);
+			Color diffuseForThisLight = (lightColor.scale(intensity)).scale(shadow);
 			diffuse= diffuse.add(diffuseForThisLight);
 			//Ray lightBeam = new Ray(lightPos,lightDir);
 			//Intersection light_obj_intr= new Intersection(curObj,lightBeam);
@@ -417,7 +432,7 @@ public class RayTracer {
 			if(cosinusTheta>0){
 				double specularValue= light.getSpecular_intensity()*Math.pow(cosinusTheta, material.getPhong_specular_coeff());
 
-				specular=specular.add(lightColor.scale(specularValue));
+				specular=specular.add(lightColor.scale(specularValue).scale(shadow));
 			}
 		}
 		
@@ -428,8 +443,143 @@ public class RayTracer {
 		diffuse=diffuse.mult(material.getDiffuse_col()); 
 		//System.out.format("specular: %s*%s=%s\n",specular,material.getSpecular_col(),specular.mult(material.getSpecular_col()));
 		specular=specular.mult(material.getSpecular_col());
-		
 		//System.out.println(specular);
-		return (diffuse.add(specular).scale(1-transparancy).add(backgroundColor.scale(transparancy)));//.add(reflection);
+		
+		Color resColor = (diffuse.add(specular).scale(1-transparancy).add(backgroundColor.scale(transparancy)));
+		if (currentLevelRecurse < thisScene.getSet().getMax_num_recurstion())
+		{
+			resColor = resColor.add(reflectionColor(curIntersection,material,currentLevelRecurse,hit.getRay()));
+		}
+		return resColor;//.add(reflection);
 	}
+	
+	
+	
+	private double SoftShadow(SingleIntersection curIntersection, Light lgt, Tuple3D lightDir, int NumberOfShadowRays){
+
+		
+		if(NumberOfShadowRays==1){
+			return (1.0-(lgt.getShadow_intensity()*(1.0-ShadowRayHit(curIntersection.getPosition(), lgt.getPosition(), curIntersection.getObject()))));
+		}
+		
+		Tuple3D up_vector = thisScene.getCam().getUp_vector(),
+				x_axis = up_vector.cross(lightDir),// x_axis of the plane
+				y_axis = x_axis.cross(lightDir);//y_axis of the plane
+		
+		//Plane perpendicularPlaneToLightRay = new Plane(lightDir, 0);
+		Tuple3D firstPos = lgt.getPosition().sub(x_axis.scale(lgt.getRadius()/2.0)).sub(y_axis.scale(lgt.getRadius()/2.0)),
+				y_pos = firstPos,
+				x_pos=y_pos, rnd_pos, step;
+		
+		double cellSize = lgt.getRadius()/(double)Math.sqrt(NumberOfShadowRays);
+		Tuple3D x_cell = x_axis.scale(cellSize);
+		Tuple3D y_cell = y_axis.scale(cellSize);
+		double x_rnd,y_rnd;
+	//	Random rnd = new Random();
+
+		double numOfRayHit = 0.0;
+		for (int i=0; i < Math.sqrt(NumberOfShadowRays);i++){
+			x_pos = y_pos;
+			for (int j=0; j< Math.sqrt(NumberOfShadowRays); j++){
+				x_rnd = rnd.nextDouble();
+				y_rnd = rnd.nextDouble();
+				step = (x_cell.scale(x_rnd).add(y_cell.scale(y_rnd)));
+				rnd_pos = x_pos.add(step);
+				
+				numOfRayHit += ShadowRayHit(curIntersection.getPosition(), rnd_pos, curIntersection.getObject());
+
+				x_pos = x_pos.add(x_cell);
+
+			}
+			y_pos = y_pos.add(y_cell);
+
+		}
+		//double notHit = 1.0 - ((double)numOfRayHit/(double)NumberOfShadowRays);
+
+		
+		
+		//return 1d - (notHit * lgt.getShadow_intensity());
+
+		return (1d-lgt.getShadow_intensity()) + (numOfRayHit/NumberOfShadowRays * lgt.getShadow_intensity());
+		
+	}
+	
+	private double ShadowRayHit(Tuple3D intersectPointWithObj, Tuple3D RayOrigin, Object3D obj){
+		
+
+		Ray ray = new Ray(RayOrigin,intersectPointWithObj);
+		Intersection hit = new Intersection(this.thisScene.getObjects(), ray);
+
+
+		SingleIntersection closestObj = hit.getFirstIntersection();
+		if(closestObj==null) return 1.0;
+
+
+		Tuple3D RayDirection =  closestObj.getPosition().sub(RayOrigin);
+
+		double distIntersctionPointFromRayOrigin = Math.sqrt(RayDirection.dotFactor(RayDirection));
+
+		Tuple3D RayToObj = intersectPointWithObj.sub(RayOrigin);
+		double distObjPointFromRayOrigin = Math.sqrt(RayToObj.dotFactor(RayToObj));
+
+		
+		if ((distObjPointFromRayOrigin < distIntersctionPointFromRayOrigin) || (Math.abs(distObjPointFromRayOrigin-distIntersctionPointFromRayOrigin) <= 10E-10)){
+			return 1.0;
+		}
+		
+		double res = 1.0;
+		boolean ok=true;
+		int i=0;
+		Material mat;
+		Intersection.SingleIntersection it = null;
+		while(ok){
+			it = hit.getIntersectionByIndex(i);
+			i = i+1;
+
+			if ((it==null)||(it.getObject()==obj)){
+				ok = false;
+				break;
+			}
+			mat = it.getObject().getMaterial();
+			res *= mat.getTransparency();
+
+		}
+
+		
+	return res;
+		
+	}
+	
+	private Color reflectionColor (SingleIntersection curIntersection, Material mat, int currentLevelRecurse, Ray ray){
+		Tuple3D RayFromCameraDirect = ray.getDirection().scale(-1),
+				curIntersectionNormal = curIntersection.getNormal().scale(-1),
+				hitNormal = curIntersection.getHitNormal(),
+				intersectPosition = curIntersection.getPosition(),
+				tmp = RayFromCameraDirect.scale(2),
+				tmp1 = (curIntersectionNormal.scale(curIntersectionNormal.dotFactor(tmp))),
+				reflectDirect = tmp1.sub(RayFromCameraDirect).normalized();
+
+				
+				
+		
+		Ray reflect = new Ray(intersectPosition.sub(reflectDirect.scale(10E-10)), reflectDirect);
+
+
+		Intersection hit = new Intersection(this.thisScene.getObjects(), reflect);
+		Color MatreflectCol = mat.getReflection_col();
+		Color resColor = new Color(0,0,0);
+		if (MatreflectCol==resColor) return resColor;
+		
+		resColor = getColor(currentLevelRecurse+1,hit);
+		resColor = resColor.mult(MatreflectCol);
+		
+		return resColor;
+		
+		
+		
+
+		
+	}
+	
+	
 }
