@@ -144,16 +144,16 @@ public class Cylinder extends Object3D{
 				
 				//getting actual distances using Pythagoras's theorem 
 				double origDirY=origDir.getY();
-				double entranceDist3D=Math.sqrt(entranceDist2D*entranceDist2D+origDirY*origDirY);
+				//double entranceDist3D=Math.sqrt(entranceDist2D*entranceDist2D+origDirY*origDirY);
 				//double exitDist3D=Math.sqrt(exitDist2D*exitDist2D+origDirY*origDirY);
 				
 				double origPosY=origPos.getY();
-				double entranceY = origPosY+entranceDist3D*origDirY;
+				double entranceY = origPosY+entranceDist2D*origDirY;
 				//double exitY = origPosY+exitDist3D*origDirY;
 				
 				//entering to one of the cyl's "sides"
 				if(entranceY<=length/2 && entranceY>=-(length/2)){
-					return entranceDist3D;
+					return entranceDist2D;
 				}
 			}
 			return -1;
