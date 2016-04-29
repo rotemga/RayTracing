@@ -384,16 +384,6 @@ public class RayTracer {
 		
 		//the object normal at the point of contact 
 		Tuple3D curIntersectionNormal = curIntersection.getNormal();
-		
-		Tuple3D reflectedDirection = curIntersectionNormal.scale(2*hitNormal.dotFactor(curIntersectionNormal)).sub(hitNormal);
-		Ray reflectedRay = new Ray(curIntersection.getPosition(),reflectedDirection);
-
-		List<Object3D> otherObjects = new ArrayList<Object3D>(thisScene.getObjects());
-		//otherObjects.remove(curObj);
-		Intersection reflectedIntersection = new Intersection(otherObjects, reflectedRay);
-		
-		
-		Color reflection=(getColor(currentLevelRecurse+1,reflectedIntersection)).mult(material.getReflection_col());
 
 		
 		Color diffuse = new Color(0,0,0);
@@ -412,8 +402,6 @@ public class RayTracer {
 
 			shadow = SoftShadow(curIntersection,light,lightDir.scale(-1),NumberOfShadowRays);
 
-			//Color shadowTuple = new Color (shadow,shadow,shadow);
-			//lightColor = lightColor.sub(shadowTuple);
 			
 			double intensity = Math.max(Math.min(curIntersectionNormal.dotFactor(lightDir), 1), 0);
 			
@@ -432,8 +420,9 @@ public class RayTracer {
 			if(cosinusTheta>0){
 				double specularValue= light.getSpecular_intensity()*Math.pow(cosinusTheta, material.getPhong_specular_coeff());
 
-				specular=specular.add(lightColor.scale(specularValue).scale(shadow));
+				specular=specular.add(lightColor.scale(specularValue));
 			}
+			specular = specular.scale(shadow);
 		}
 		
 		
@@ -450,7 +439,7 @@ public class RayTracer {
 		{
 			resColor = resColor.add(reflectionColor(curIntersection,material,currentLevelRecurse,hit.getRay()));
 		}
-		return resColor;//.add(reflection);
+		return resColor;
 	}
 	
 	
@@ -463,11 +452,11 @@ public class RayTracer {
 		}
 		
 		Tuple3D up_vector = thisScene.getCam().getUp_vector(),
-				x_axis = up_vector.cross(lightDir),// x_axis of the plane
-				y_axis = x_axis.cross(lightDir);//y_axis of the plane
+				x_axis = up_vector.cross(lightDir).normalized(),// x_axis of the plane
+				y_axis = x_axis.cross(lightDir).normalized();//y_axis of the plane
 		
 		//Plane perpendicularPlaneToLightRay = new Plane(lightDir, 0);
-		Tuple3D firstPos = lgt.getPosition().sub(x_axis.scale(lgt.getRadius()/2.0)).sub(y_axis.scale(lgt.getRadius()/2.0)),
+		Tuple3D firstPos = lgt.getPosition().sub(x_axis.scale(lgt.getRadius())).sub(y_axis.scale(lgt.getRadius())),
 				y_pos = firstPos,
 				x_pos=y_pos, rnd_pos, step;
 		
@@ -477,7 +466,7 @@ public class RayTracer {
 		double x_rnd,y_rnd;
 	//	Random rnd = new Random();
 
-		double numOfRayHit = 0.0;
+		double numOfRayHit = 0;
 		for (int i=0; i < Math.sqrt(NumberOfShadowRays);i++){
 			x_pos = y_pos;
 			for (int j=0; j< Math.sqrt(NumberOfShadowRays); j++){
@@ -486,7 +475,9 @@ public class RayTracer {
 				step = (x_cell.scale(x_rnd).add(y_cell.scale(y_rnd)));
 				rnd_pos = x_pos.add(step);
 				
-				numOfRayHit += ShadowRayHit(curIntersection.getPosition(), rnd_pos, curIntersection.getObject());
+				//numOfRayHit += ShadowRayHit(curIntersection.getPosition(), rnd_pos, curIntersection.getObject());
+
+				numOfRayHit += ShadowRayHit(rnd_pos, curIntersection.getPosition(), curIntersection.getObject());
 
 				x_pos = x_pos.add(x_cell);
 
@@ -507,7 +498,7 @@ public class RayTracer {
 	private double ShadowRayHit(Tuple3D intersectPointWithObj, Tuple3D RayOrigin, Object3D obj){
 		
 
-		Ray ray = new Ray(RayOrigin,intersectPointWithObj);
+		Ray ray = new Ray(RayOrigin.add(intersectPointWithObj.scale(10E-10)),intersectPointWithObj);
 		Intersection hit = new Intersection(this.thisScene.getObjects(), ray);
 
 
@@ -515,11 +506,14 @@ public class RayTracer {
 		if(closestObj==null) return 1.0;
 
 
-		Tuple3D RayDirection =  closestObj.getPosition().sub(RayOrigin);
+		//Tuple3D RayDirection =  closestObj.getPosition().sub(RayOrigin);
+		Tuple3D RayDirection =  RayOrigin.sub(closestObj.getPosition());
 
 		double distIntersctionPointFromRayOrigin = Math.sqrt(RayDirection.dotFactor(RayDirection));
 
-		Tuple3D RayToObj = intersectPointWithObj.sub(RayOrigin);
+		//Tuple3D RayToObj = intersectPointWithObj.sub(RayOrigin);
+		Tuple3D RayToObj = RayOrigin.sub(intersectPointWithObj);
+
 		double distObjPointFromRayOrigin = Math.sqrt(RayToObj.dotFactor(RayToObj));
 
 		
@@ -540,8 +534,11 @@ public class RayTracer {
 				ok = false;
 				break;
 			}
+			
 			mat = it.getObject().getMaterial();
 			res *= mat.getTransparency();
+			
+	
 
 		}
 
@@ -553,7 +550,6 @@ public class RayTracer {
 	private Color reflectionColor (SingleIntersection curIntersection, Material mat, int currentLevelRecurse, Ray ray){
 		Tuple3D RayFromCameraDirect = ray.getDirection().scale(-1),
 				curIntersectionNormal = curIntersection.getNormal().scale(-1),
-				hitNormal = curIntersection.getHitNormal(),
 				intersectPosition = curIntersection.getPosition(),
 				tmp = RayFromCameraDirect.scale(2),
 				tmp1 = (curIntersectionNormal.scale(curIntersectionNormal.dotFactor(tmp))),
